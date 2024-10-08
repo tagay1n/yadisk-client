@@ -23,11 +23,13 @@ class YaDisk(yadisk.YaDisk):
         meta = self.get_meta_or_none(remote_path, fields=["type", "md5"])
         if meta and meta['type'] == 'dir':
             raise ValueError(f"Cannot save file because directory with the same name already exists: {remote_path}")
-        elif (not meta) or meta['md5'] != calculate_md5(local_file):
+
+        md5 = calculate_md5(local_file)
+        if (not meta) or meta['md5'] != md5:
             # Upload the file if it does not exist or has a different hash
             self.upload(local_file, remote_path, overwrite=True)
 
-        return remote_path
+        return remote_path, md5
 
     def get_public_download_link_by_remote_path(self, remote_path: str):
         pub_key = self.get_meta(remote_path, fields=['public_key'])['public_key']
